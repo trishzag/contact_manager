@@ -38,7 +38,7 @@ gem 'pg'
 gem 'rake'
 ```
 
-**Don't forget to run `bundle install`.**
+**Don't forget to run `bundle install` and restart your server.**
 
 Now require it in your Sinatra application file:
 
@@ -99,8 +99,7 @@ rake db:create
 
 When we run this rake task, Active Record will look at the
 `config/database.yml` file to determine what kind of database want to use and
-how to create it. You should now see a `db/schema.rb` file that defines the
-current schema (structure) of our database.
+how to create it.
 
 That's it! If you didn't see any errors, you've got your Sinatra app ready to
 store data in a database in the same way that Rails does.
@@ -300,3 +299,32 @@ To put our seed code into action, run `rake db:seed`. This will run all of the
 code we wrote in `db/seeds.rb`.
 
 **You should now be able to view all of the contacts again on the index page.**
+
+## Fix the Tests
+
+You might have noticed that all of our tests are failing.
+
+Inside `spec/spec_helper.rb`, which is required by all of our test files, we're
+setting the environment to test with `set :environment, :test`. Because our
+tests are running in the test environment, Active Record is being connected to
+a different database than the one that we use in the development environment.
+
+If you remember back to when we created our `db/database.yml`, we created
+separate instructions for each environment. Go back and look at that file again
+if you need a refresher.
+
+Earlier when we ran `rake db:migrate`, we were only running the migrations on
+our development database. This means that our test database doesn't have the
+contacts table that is created from our migration.
+
+We can use another one of the default Active Record rake tasks to prepare our
+test database so that it matches our development database:
+
+```no-highlight
+rake db:test:prepare
+```
+
+All the tests should now be back to passing!
+
+**Hint: You will want to run this rake task after every time that you run `rake
+db:migrate`.**
