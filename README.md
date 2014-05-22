@@ -1,10 +1,12 @@
 # Contact Manager
 
-We're going to work on changing this application so that all of the contact
-information is stored in a database using [Active Record](https://github.com/rails/rails/tree/master/activerecord).
+We're going to work on changing a Sinatra application from using hard coded
+hashes as it's data source to using a [PostgreSQL](http://www.postgresql.org/)
+database with
+[Active Record](https://github.com/rails/rails/tree/master/activerecord).
 
 Active Record provides an interface for interacting with your database and
-converting your results into Ruby objects.
+converting your results directly into Ruby objects.
 
 ## Setup
 
@@ -40,7 +42,7 @@ gem 'rake'
 
 **Don't forget to run `bundle install` and restart your server.**
 
-Now require it in your Sinatra application file:
+Now require `sinatra/activerecord` in your Sinatra application file:
 
 ```ruby
 require "sinatra/activerecord"
@@ -77,7 +79,8 @@ production:
   password:
 ```
 
-`sintatra-activerecord` also gives us a bunch of rake tasks that allow us to
+`sintatra-activerecord` also gives us a bunch of [rake
+tasks](https://github.com/jimweirich/rake) that allow us to
 create our database, add/drop tables, etc. Rake tasks are basically just ruby
 scripts that you can run from the command line.
 
@@ -98,11 +101,11 @@ rake db:create
 ```
 
 When we run this rake task, Active Record will look at the
-`config/database.yml` file to determine what kind of database want to use and
-how to create it.
+`config/database.yml` file to determine what kind of database want to use, how
+to talk to it, and how to create it.
 
 That's it! If you didn't see any errors, you've got your Sinatra app ready to
-store data in a database in the same way that Rails does.
+store data in a database the same way that Rails does.
 
 **Protip: You can see all of the rake tasks that are available to you by using
 the `rake -T` command on the command line.**
@@ -116,7 +119,7 @@ Ruby code.
 We can create a migration file by using the `db:create_migration` rake task given to us by
 `sinatra-activerecord`.
 
-Create a migration for our contacts table with the following command in your
+Create a migration that will create a "contacts" table with the following command in your
 terminal:
 
 ```no-highlight
@@ -124,8 +127,8 @@ rake db:create_migration NAME=create_contacts
 ```
 
 By running the previous rake task we've generated a `db/migrate` directory for
-our app. Inside of that directory you should see a file named something similar
-to `20140314134004_create_contacts.rb`. Your actual file name will be slightly
+our app. Inside of that directory you should see a file named something like
+`20140314134004_create_contacts.rb`. Your actual file name will be slightly
 different because the first part (the numbers) is actually a timestamp,
 indicating when you created the file, which is used to make sure that our
 migrations run in the order that we create them.
@@ -172,10 +175,33 @@ You should see output similar to this:
 ==  CreateContacts: migrated (0.0096s) ========================================
 ```
 
-When we run this rake task, Active Record run the ruby code in any of the
+When we run this rake task, Active Record runs the ruby code in any of the
 migration files that are prefixed with a timestamp later than the version timestamp
 in your `db/schema.rb`. This is important because we don't want to rerun any
 migrations that we have already run in the past.
+
+Before moving on, it's good practice to make sure that your migration can be
+rolled back. Rolling back a migration is basically like hitting the undo button.
+Active Record is pretty good at guessing what to do in order to undo our
+`create_table` because the opposite is to simply drop the table with
+`drop_table`. You will eventually run into other situations where you will need to
+manually define what to do for both migrating "up" and rolling back "down" but
+we're not going to cover that here.
+
+Make sure that your migration can be rolled back, and then migrate "up" again
+by running the following commands in the terminal:
+
+```no-highlight
+# Roll the database back to where it was before the last migration
+rake db:rollback
+
+# Run our migration to create the contacts table again
+rake db:migrate
+```
+
+**Protip: Eventually you will want to create an alias that does both of these
+commands for you at once. I would recommend against doing that for a while
+until you have both steps firmly planted in your mind.**
 
 ## Connecting the Contact Model to the Contacts Table
 
@@ -189,8 +215,8 @@ class Contact < ActiveRecord::Base
 end
 ```
 
-Inheriting from `ActiveRecord::Base`, gives our class all of the methods that
-are defined in the `ActiveRecord::Base` class.
+Inheriting from `ActiveRecord::Base`, gives the `Contact` class all of the
+methods that are defined in the `ActiveRecord::Base` class.
 
 The next step is to remove our `attr_reader` statements and our `#initialize`
 method. This is some of the "rails magic" kind of stuff that you hear people
