@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sinatra/reloader'
 
 require_relative 'models/contact'
+also_reload 'models/contact'
 
 before do
   contact_attributes = [
